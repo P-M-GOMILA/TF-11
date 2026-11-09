@@ -3,6 +3,20 @@ from math import prod
 import re
 
 
+class Pessoa:
+    def __init__(self, nome, cpf, email):
+        self.nome = nome
+        self.cpf = cpf
+        self.email = email
+
+
+class Endereco:
+    def __init__(self, rua, cidade, cep):
+        self.rua = rua
+        self.cidade = cidade
+        self.cep = cep
+
+
                
 class Cliente:
     def __init__(
@@ -15,14 +29,19 @@ class Cliente:
         cep,
         tipo
     ):
-        self.nome = nome
-        self.cpf = Cpf(cpf)
-        self.email = Email(email)
-        self.rua = rua
-        self.cidade = cidade
-        self.cep = Cep(cep)
-        self.tipo = tipo
+        self.pessoa = Pessoa(
+            nome,
+            Cpf(cpf),
+            Email(email)
+        )
 
+        self.endereco = Endereco(
+            rua,
+            cidade,
+            Cep(cep)
+        )
+
+        self.tipo = tipo
 
 class Produto:
     def __init__(self, nome, preco):
@@ -159,17 +178,17 @@ class Pedido:
 
 
 
-def novo_pedido(n, cnome, ccpf, cmail, rua, cid, cep, tp):
+def novo_pedido(n, nome, cpf, email, rua, cidade, cep, tipo):
     try:
 
         cliente = Cliente(
-            cnome,
-            ccpf,
-            cmail,
+            nome,
+            cpf,
+            email,
             rua,
-            cid,
+            cidade,
             cep,
-            tp
+            tipo
         )
 
         pedido = Pedido(n, cliente)
@@ -230,7 +249,7 @@ def descrever_status(status):
 
 def relatorio():
     for p in pedidos.listar():
-        print("Pedido", p.numero, "-", p.cliente.nome, "-", p.cliente.cidade)
+        print("Pedido", p.numero, "-", p.cliente.pessoa.nome, "-", p.cliente.endereco.cidade)
         print("  status:", descrever_status(p.status))
         for item in p.itens.listar():
             print("  ", item.quantidade, "x", item.produto.nome, "= R$ %.2f" % (item.quantidade * item.produto.preco))
