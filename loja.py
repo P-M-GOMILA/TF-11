@@ -328,3 +328,6 @@ print("cancelar 1:", A.cancelar())
 relatorio()
 print("arrecadado: R$ %.2f" % arrecadado())
 print("abertos:", quantidade_abertos())
+
+
+#COLCANDO ESTE AVISO AQUI NO FINAL PARA QUE EU CONSIGA FAZER MAIS UM COMMIT, DESSA VEZ RELACIONADO AO ROTEIRO FINAL.#
