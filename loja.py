@@ -19,11 +19,11 @@ class Cliente:
         tipo
     ):
         self.nome = nome
-        self.cpf = cpf
-        self.email = email
+        self.cpf = Cpf(cpf)
+        self.email = Email(email)
         self.rua = rua
         self.cidade = cidade
-        self.cep = cep
+        self.cep = Cep(cep)
         self.tipo = tipo
 
 
@@ -38,56 +38,115 @@ class ItemDoPedido:
         self.produto = produto
         self.quantidade = quantidade
 
+
+class Cpf:
+    def __init__(self, valor):
+        if len(valor) != 11:
+            raise ValueError("cpf invalido")
+
+        self.valor = valor
+
+
+class Email:
+    def __init__(self, valor):
+        if len(valor) == 0:
+            raise ValueError("email vazio")
+
+        if "@" not in valor:
+            raise ValueError("email invalido")
+
+        self.valor = valor
+
+
+class Cep:
+    def __init__(self, valor):
+        if len(valor) != 8:
+            raise ValueError("cep invalido")
+
+        self.valor = valor
+
+
+class Status:
+    def __init__(self, codigo):
+        self.codigo = codigo
+
+    def descricao(self):
+        if self.codigo == "A":
+            return "aberto"
+
+        if self.codigo == "P":
+            return "pago"
+
+        return "cancelado"
+
+    def esta_aberto(self):
+        return self.codigo == "A"
+
+
+class Dinheiro:
+    def __init__(self, valor):
+        self.centavos = round(valor * 100)
+
+    def somar(self, outro):
+        return Dinheiro((self.centavos + outro.centavos) / 100)
+
+    def subtrair(self, outro):
+        return Dinheiro((self.centavos - outro.centavos) / 100)
+
+    def multiplicar(self, quantidade):
+        return Dinheiro((self.centavos * quantidade) / 100)
+
+    def percentual(self, porcentagem):
+        return Dinheiro(
+            (self.centavos * porcentagem / 100) / 100
+        )
+
+    def __str__(self):
+        return "R$ %.2f" % (self.centavos / 100)
+
+    def valor(self):
+        return self.centavos / 100
+  
 class Pedido:
     def __init__(self, numero, cliente):
         self.numero = numero
         self.cliente = cliente
         self.itens = []
-        self.status = "A"
+        self.status = Status("A")
         
 
     def get_status(self):
-        return self.status
+        return self.status.codigo
 
     def set_status(self, v):
-        self.status = v
+        self.status = Status(v)
 
 
-def valida(cliente_email, cliente_cpf, cep):
-    if len(cliente_email) > 0:
-        if "@" in cliente_email:
-            if len(cliente_cpf) == 11:
-                if len(cep) == 8:
-                    return "ok"
-                else:
-                    return "cep invalido"
-            else:
-                return "cpf invalido"
-        else:
-            return "email invalido"
-    else:
-        return "email vazio"
 
 
-def novo_pedido(numero, cliente_nome, cliente_cpf, cliente_email, rua, cidade, cep, tipo_cliente):
-    r = valida(cliente_email, cliente_cpf, cep)
-    if r != "ok":
-        print("pedido", numero, "recusado:", r)
-        return None
-    else:
+
+def novo_pedido(n, cnome, ccpf, cmail, rua, cid, cep, tp):
+    try:
+
         cliente = Cliente(
-            cliente_nome,
-            cliente_cpf,
-            cliente_email,
+            cnome,
+            ccpf,
+            cmail,
             rua,
-            cidade,
+            cid,
             cep,
-            tipo_cliente
+            tp
         )
-        p = Pedido(numero, cliente)
-        pedidos.append(p)
-        return p
 
+        pedido = Pedido(n, cliente)
+
+        pedidos.append(pedido)
+
+        return pedido
+
+    except ValueError as erro:
+        print("pedido", n, "recusado:", erro)
+        return None
 
 def add_item(pedido, produto, quantidade, preco):
     produto = Produto(produto, preco)
@@ -135,19 +194,13 @@ def cancelar(pedido):
         return False
 
 
-def descrever_status(s):
-    if s == "A":
-        return "aberto"
-    elif s == "P":
-        return "pago"
-    else:
-        return "cancelado"
-
+def descrever_status(status):
+    return status.descricao()
 
 def relatorio():
     for p in pedidos:
         print("Pedido", p.numero, "-", p.cliente.nome, "-", p.cliente.cidade)
-        print("  status:", descrever_status(p.get_status()))
+        print("  status:", descrever_status(p.status))
         for i in p.itens:
             print("  ", i.quantidade, "x", i.produto.nome, "= R$ %.2f" % (i.quantidade * i.produto.preco))
         if len(p.itens) > 0:
