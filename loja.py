@@ -6,15 +6,15 @@ pedidos = []                      # todos os pedidos da loja: lista solta, globa
 
 
 class Pedido:
-    def __init__(self, n, cnome, ccpf, cmail, rua, cid, cep, tp):
-        self.numero = n            # numero do pedido
-        self.cliente_nome = cnome    # os dados do cliente se repetem em CADA pedido dele
-        self.cliente_cpf = ccpf
-        self.cliente_email = cmail
+    def __init__(self, numero, cliente_nome, cliente_cpf, cliente_email, rua, cidade, cep, tipo_cliente):
+        self.numero = numero            # numero do pedido
+        self.cliente_nome = cliente_nome    # os dados do cliente se repetem em CADA pedido dele
+        self.cliente_cpf = cliente_cpf
+        self.cliente_email = cliente_email
         self.rua = rua
-        self.cidade = cid
+        self.cidade = cidade
         self.cep = cep
-        self.tipo_cliente = tp          # tipo do cliente: "N" normal, "V" vip, "F" funcionario
+        self.tipo_cliente = tipo_cliente          # tipo do cliente: "N" normal, "V" vip, "F" funcionario
         self.itens = []       # cada item e uma lista: [produto, qtd, preco]
         self.status = "A"         # A = aberto, P = pago, C = cancelado
 
@@ -25,10 +25,10 @@ class Pedido:
         self.status = v
 
 
-def valida(cmail, ccpf, cep):
-    if len(cmail) > 0:
-        if "@" in cmail:
-            if len(ccpf) == 11:
+def valida(cliente_email, cliente_cpf, cep):
+    if len(cliente_email) > 0:
+        if "@" in cliente_email:
+            if len(cliente_cpf) == 11:
                 if len(cep) == 8:
                     return "ok"
                 else:
@@ -41,46 +41,46 @@ def valida(cmail, ccpf, cep):
         return "email vazio"
 
 
-def novo_pedido(n, cnome, ccpf, cmail, rua, cid, cep, tp):
-    r = valida(cmail, ccpf, cep)
+def novo_pedido(numero, cliente_nome, cliente_cpf, cliente_email, rua, cidade, cep, tipo_cliente):
+    r = valida(cliente_email, cliente_cpf, cep)
     if r != "ok":
-        print("pedido", n, "recusado:", r)
+        print("pedido", numero, "recusado:", r)
         return None
     else:
-        p = Pedido(n, cnome, ccpf, cmail, rua, cid, cep, tp)
+        p = Pedido(numero, cliente_nome, cliente_cpf, cliente_email, rua, cidade, cep, tipo_cliente)
         pedidos.append(p)
         return p
 
 
-def add_item(p, prod, qtd, vl):
-    p.itens.append([prod, qtd, vl])
+def add_item(pedido, produto, quantidade, valor):
+    pedido.itens.append([produto, quantidade, valor])
 
 
-def total(p):
+def total(pedido):
     total = 0
-    for i in p.itens:
+    for i in pedido.itens:
         total = total + i[1] * i[2]
     return total
 
 
-def calcular_desconto(tp, t):
-    if tp == "V":
-        d = t * 0.10
-    elif tp == "F":
-        d = t * 0.20
+def calcular_desconto(tipo_cliente, total_pedido):
+    if tipo_cliente == "V":
+        d = total_pedido * 0.10
+    elif tipo_cliente == "F":
+        d = total_pedido * 0.20
     else:
         d = 0
     return d
 
 
-def calcular_valor_a_pagar(p):
-    return total(p) - calcular_desconto(p.tipo_cliente, total(p))
+def calcular_valor_a_pagar(pedido):
+    return total(pedido) - calcular_desconto(pedido.tipo_cliente, total(pedido))
 
 
-def pagar(p):
-    if p.get_status() == "A":
-        if len(p.itens) > 0:
-            p.set_status("P")
+def pagar(pedido):
+    if pedido.get_status() == "A":
+        if len(pedido.itens) > 0:
+            pedido.set_status("P")
             return True
         else:
             return False
@@ -88,9 +88,9 @@ def pagar(p):
         return False
 
 
-def cancelar(p):
-    if p.get_status() == "A":
-        p.set_status("C")
+def cancelar(pedido):
+    if pedido.get_status() == "A":
+        pedido.set_status("C")
         return True
     else:
         return False
