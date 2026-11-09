@@ -1,12 +1,9 @@
-# CODIGO FEIO DE PROPOSITO (TF 11). Funciona, mas viola quase todas as regras do
-# Object Calisthenics. A missao e consertar SEM mudar o que ele imprime.
-# Rodar no terminal: python3 loja_feia.py
 
 from math import prod
 import re
 
 
-pedidos = []                      # todos os pedidos da loja: lista solta, global
+               
 class Cliente:
     def __init__(
         self,
@@ -38,6 +35,43 @@ class ItemDoPedido:
         self.produto = produto
         self.quantidade = quantidade
 
+
+class ItensDoPedido:
+    def __init__(self):
+        self.itens = []
+
+    def adicionar(self, item):
+        self.itens.append(item)
+
+    def esta_vazia(self):
+        return len(self.itens) == 0
+
+    def calcular_total(self):
+        total = 0
+
+        for item in self.itens:
+            total += (
+                item.quantidade *
+                item.produto.preco
+            )
+
+        return total
+
+    def listar(self):
+        return self.itens
+
+
+class Pedidos:
+    def __init__(self):
+        self.pedidos = {}
+
+    def adicionar(self, pedido):
+        self.pedidos[pedido.numero] = pedido
+
+    def listar(self):
+        return self.pedidos.values()
+
+pedidos = Pedidos()
 
 class Cpf:
     def __init__(self, valor):
@@ -111,7 +145,7 @@ class Pedido:
     def __init__(self, numero, cliente):
         self.numero = numero
         self.cliente = cliente
-        self.itens = []
+        self.itens = itens = ItensDoPedido()    
         self.status = Status("A")
         
 
@@ -140,7 +174,7 @@ def novo_pedido(n, cnome, ccpf, cmail, rua, cid, cep, tp):
 
         pedido = Pedido(n, cliente)
 
-        pedidos.append(pedido)
+        pedidos.adicionar(pedido)
 
         return pedido
 
@@ -151,14 +185,11 @@ def novo_pedido(n, cnome, ccpf, cmail, rua, cid, cep, tp):
 def add_item(pedido, produto, quantidade, preco):
     produto = Produto(produto, preco)
     item = ItemDoPedido(produto, quantidade)
-    pedido.itens.append(item)
+    pedido.itens.adicionar(item)
 
 
 def total(pedido):
-    total = 0
-    for i in pedido.itens:
-        total = total + i.quantidade * i.produto.preco
-    return total
+    return pedido.itens.calcular_total()
 
 
 def calcular_desconto(tipo_cliente, total_pedido):
@@ -177,7 +208,7 @@ def calcular_valor_a_pagar(pedido):
 
 def pagar(pedido):
     if pedido.get_status() == "A":
-        if len(pedido.itens) > 0:
+        if not pedido.itens.esta_vazia():
             pedido.set_status("P")
             return True
         else:
@@ -198,18 +229,18 @@ def descrever_status(status):
     return status.descricao()
 
 def relatorio():
-    for p in pedidos:
+    for p in pedidos.listar():
         print("Pedido", p.numero, "-", p.cliente.nome, "-", p.cliente.cidade)
         print("  status:", descrever_status(p.status))
-        for i in p.itens:
-            print("  ", i.quantidade, "x", i.produto.nome, "= R$ %.2f" % (i.quantidade * i.produto.preco))
-        if len(p.itens) > 0:
+        for item in p.itens.listar():
+            print("  ", item.quantidade, "x", item.produto.nome, "= R$ %.2f" % (item.quantidade * item.produto.preco))
+        if not p.itens.esta_vazia():
             print("  total: R$ %.2f | desconto: R$ %.2f | a pagar: R$ %.2f" % (total(p), calcular_desconto(p.cliente.tipo, total(p)), calcular_valor_a_pagar(p)))
 
 
 def arrecadado():
     total = 0
-    for p in pedidos:
+    for p in pedidos.listar():
         if p.get_status() == "P":
             total = total + calcular_valor_a_pagar(p)
     return total
@@ -217,7 +248,7 @@ def arrecadado():
 
 def quantidade_abertos():
     q = 0
-    for p in pedidos:
+    for p in pedidos.listar():
         if p.get_status() == "A":
             q = q + 1
     return q
