@@ -43,6 +43,12 @@ class Cliente:
 
         self.tipo = tipo
 
+    def nome(self):
+        return self.pessoa.nome
+
+    def cidade(self):
+        return self.endereco.cidade
+
 class Produto:
     def __init__(self, nome, preco):
         self.nome = nome
@@ -164,17 +170,31 @@ class Pedido:
     def __init__(self, numero, cliente):
         self.numero = numero
         self.cliente = cliente
-        self.itens = itens = ItensDoPedido()    
+        self.itens = ItensDoPedido()
         self.status = Status("A")
-        
 
-    def get_status(self):
-        return self.status.codigo
+    def nome_cliente(self):
+        return self.cliente.nome()
 
-    def set_status(self, v):
-        self.status = Status(v)
+    def cidade_cliente(self):
+        return self.cliente.cidade()
 
+    def pagar(self):
+        if not self.status.esta_aberto():
+            return False
 
+        if self.itens.esta_vazia():
+            return False
+
+        self.status = Status("P")
+        return True
+
+    def cancelar(self):
+        if not self.status.esta_aberto():
+            return False
+
+        self.status = Status("C")
+        return True
 
 
 
@@ -225,23 +245,7 @@ def calcular_valor_a_pagar(pedido):
     return total(pedido) - calcular_desconto(pedido.cliente.tipo, total(pedido))
 
 
-def pagar(pedido):
-    if pedido.get_status() == "A":
-        if not pedido.itens.esta_vazia():
-            pedido.set_status("P")
-            return True
-        else:
-            return False
-    else:
-        return False
 
-
-def cancelar(pedido):
-    if pedido.get_status() == "A":
-        pedido.set_status("C")
-        return True
-    else:
-        return False
 
 
 def descrever_status(status):
@@ -249,7 +253,7 @@ def descrever_status(status):
 
 def relatorio():
     for p in pedidos.listar():
-        print("Pedido", p.numero, "-", p.cliente.pessoa.nome, "-", p.cliente.endereco.cidade)
+        print("Pedido", p.numero, "-", p.nome_cliente(), "-", p.cidade_cliente())
         print("  status:", descrever_status(p.status))
         for item in p.itens.listar():
             print("  ", item.quantidade, "x", item.produto.nome, "= R$ %.2f" % (item.quantidade * item.produto.preco))
@@ -260,15 +264,14 @@ def relatorio():
 def arrecadado():
     total = 0
     for p in pedidos.listar():
-        if p.get_status() == "P":
+        if p.status.codigo == "P":
             total = total + calcular_valor_a_pagar(p)
     return total
-
 
 def quantidade_abertos():
     q = 0
     for p in pedidos.listar():
-        if p.get_status() == "A":
+        if p.status.codigo == "A":
             q = q + 1
     return q
 
@@ -295,12 +298,12 @@ novo_pedido(7, "Fabio Costa", "99988877766", "fabio@mail.com", "Rua Velha, 3", "
 g = novo_pedido(8, "Gil Alves", "44455566677", "gil@mail.com", "Rua do Meio, 9", "Sorocaba", "18030000", "N")
 add_item(g, "Fone", 2, 60.0)
 
-print("pagar 1:", pagar(A))
-print("pagar 3:", pagar(C))
-print("pagar 5:", pagar(E))
-print("pagar 6:", pagar(F))
-print("cancelar 5:", cancelar(E))
-print("cancelar 1:", cancelar(A))
+print("pagar 1:", A.pagar())
+print("pagar 3:", C.pagar())
+print("pagar 5:", E.pagar())
+print("pagar 6:", F.pagar())
+print("cancelar 5:", E.cancelar())
+print("cancelar 1:", A.cancelar())
 
 relatorio()
 print("arrecadado: R$ %.2f" % arrecadado())
