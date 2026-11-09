@@ -17,6 +17,21 @@ class Endereco:
         self.cep = cep
 
 
+class TipoNormal:
+    def desconto_sobre(self, valor):
+        return 0
+
+
+class TipoVip:
+    def desconto_sobre(self, valor):
+        return valor * 0.10
+
+
+class TipoFuncionario:
+    def desconto_sobre(self, valor):
+        return valor * 0.20
+
+
                
 class Cliente:
     def __init__(
@@ -41,7 +56,14 @@ class Cliente:
             Cep(cep)
         )
 
-        self.tipo = tipo
+        tipos = {
+        "N": TipoNormal(),
+        "V": TipoVip(),
+        "F": TipoFuncionario()
+        }   
+    
+        self.tipo = tipos[tipo]
+
 
     def nome(self):
         return self.pessoa.nome
@@ -130,13 +152,14 @@ class Status:
         self.codigo = codigo
 
     def descricao(self):
-        if self.codigo == "A":
-            return "aberto"
+        descricoes = {
+        "A": "aberto",
+        "P": "pago",
+        "C": "cancelado"
+    }
 
-        if self.codigo == "P":
-            return "pago"
+        return descricoes[self.codigo]
 
-        return "cancelado"
 
     def esta_aberto(self):
         return self.codigo == "A"
@@ -231,18 +254,15 @@ def total(pedido):
     return pedido.itens.calcular_total()
 
 
-def calcular_desconto(tipo_cliente, total_pedido):
-    if tipo_cliente == "V":
-        d = total_pedido * 0.10
-    elif tipo_cliente == "F":
-        d = total_pedido * 0.20
-    else:
-        d = 0
-    return d
+def calcular_desconto(cliente, total_pedido):
+    return cliente.tipo.desconto_sobre(total_pedido)
 
 
 def calcular_valor_a_pagar(pedido):
-    return total(pedido) - calcular_desconto(pedido.cliente.tipo, total(pedido))
+   return total(pedido) - calcular_desconto(
+    pedido.cliente,
+    total(pedido)
+)
 
 
 
@@ -258,7 +278,7 @@ def relatorio():
         for item in p.itens.listar():
             print("  ", item.quantidade, "x", item.produto.nome, "= R$ %.2f" % (item.quantidade * item.produto.preco))
         if not p.itens.esta_vazia():
-            print("  total: R$ %.2f | desconto: R$ %.2f | a pagar: R$ %.2f" % (total(p), calcular_desconto(p.cliente.tipo, total(p)), calcular_valor_a_pagar(p)))
+            print("  total: R$ %.2f | desconto: R$ %.2f | a pagar: R$ %.2f" % (total(p), calcular_desconto(p.cliente, total(p)), calcular_valor_a_pagar(p)))
 
 
 def arrecadado():
